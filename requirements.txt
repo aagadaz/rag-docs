@@ -1,0 +1,14 @@
+langchain-core>=1.6,<2
+langchain-anthropic>=1.7,<2
+langchain-huggingface>=1.2,<2
+langchain-text-splitters>=1.1,<2
+langchain-chroma>=1.1,<2
+gradio>=6,<7
+python-dotenv>=1.2
+pypdf>=6
+python-docx>=1.1
+python-pptx>=1.0
+openpyxl>=3.1
+beautifulsoup4>=4.12
+requests>=2.32
+pytest>=8
