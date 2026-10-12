@@ -45,16 +45,17 @@ def _load_pdf(path: Path) -> list[Document]:
     documents=[]
 
     for page_number, page in enumerate(reader.pages, start=1):
-        text = _clean_text(page.extract_text() or "")
+            text = _clean_text(page.extract_text() or "")
 
-        if not text:
-            continue
-    documents.append(Document(
-        page_content=text,
-        metadata={
-            "source":path.name,
-            "file_type":"pdf",
-            "page":page_number
+            if not text:
+                continue
+            
+            documents.append(Document(
+                page_content=text,
+                metadata={
+                    "source":path.name,
+                    "file_type":"pdf",
+                    "page":page_number
         },
     ))
 
