@@ -43,10 +43,20 @@ def supported_extensions() -> list[str]:
 
 # ---------- outils communs ----------
 
-def _clean_text(text: str) -> str:
-    text = unicodedata.normalize("NFKC", text)
+CODE_BLOCK = re.compile(r"(```.*?```)", re.DOTALL)
+
+
+def _clean_prose(text: str) -> str:
     text = re.sub(r"-\n(\w)", r"\1", text)
     text = re.sub(r"(?<=\S)[ \t]+", " ", text)
+    return text
+
+
+def _clean_text(text: str) -> str:
+    text = unicodedata.normalize("NFKC", text)
+    parts = CODE_BLOCK.split(text)
+    # split avec un groupe capturant : indices pairs = prose, indices impairs = blocs de code
+    text = "".join(part if i % 2 else _clean_prose(part) for i, part in enumerate(parts))
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
 
@@ -268,6 +278,10 @@ def _html_to_text(html: str) -> tuple[str, str]:
 
     main = (soup.find("main") or soup.find(attrs={"role": "main"})
             or soup.find("article") or soup.body or soup)
+
+    for level in range(1, 7):
+        for heading in main.find_all(f"h{level}"):
+            heading.insert(0, "#" * level + " ")
 
     for pre in main.find_all("pre"):
         pre.replace_with("\n```\n" + pre.get_text() + "\n```\n")

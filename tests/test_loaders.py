@@ -109,3 +109,20 @@ def test_supported_extensions_lists_main_formats():
     extensions = supported_extensions()
     for ext in [".pdf", ".docx", ".pptx", ".xlsx", ".csv", ".html", ".md", ".py"]:
         assert ext in extensions
+
+
+def test_html_headings_become_markdown(tmp_path):
+    path = tmp_path / "doc.html"
+    path.write_text("<html><body><main><h1>Titre</h1><h2>Sous-titre</h2><p>Texte</p></main></body></html>", encoding="utf-8")
+    text = load_source(path)[0].page_content
+    assert "# Titre" in text
+    assert "## Sous-titre" in text
+
+
+def test_code_block_spacing_is_never_cleaned(tmp_path):
+    path = tmp_path / "doc.md"
+    path.write_text("Texte   avec  espaces.\n\n```\n   ....:     if x:\n   ....:         return 1\n```\n", encoding="utf-8")
+    text = load_source(path)[0].page_content
+    assert "Texte avec espaces." in text
+    assert "   ....:     if x:" in text
+    assert "   ....:         return 1" in text

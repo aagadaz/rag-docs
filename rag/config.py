@@ -12,8 +12,8 @@ class Settings:
     chat_model: str
     embedding_model: str
     chroma_dir: str
-    chunk_size: int = 1000
-    chunk_overlap: int = 150
+    chunk_size: int = 400
+    chunk_overlap: int = 60
     top_k: int = 4
 
 
@@ -29,10 +29,7 @@ def _load_settings() -> Settings:
     return Settings(
         anthropic_api_key=api_key,
         chat_model=os.getenv("CHAT_MODEL", "claude-haiku-5-5"),
-        embedding_model=os.getenv(
-            "EMBEDDING_MODEL",
-            "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-        ),
+        embedding_model=os.getenv("EMBEDDING_MODEL", "intfloat/multilingual-e5-small"),
         chroma_dir=os.getenv("CHROMA_DIR", "chroma_db"),
     )
 
