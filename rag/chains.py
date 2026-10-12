@@ -62,21 +62,8 @@ ANSWER_PROMPT = ChatPromptTemplate.from_messages([
     ("human", "<documentation>\n{context}\n</documentation>\n\nQuestion : {question}"),
 ])
 
-CONDENSE_PROMPT = ChatPromptTemplate.from_messages([
-    ("system", "À partir de la conversation, reformule la dernière question de l'utilisateur en une "
-               "question autonome, compréhensible sans l'historique. Ne réponds pas à la question : "
-               "renvoie uniquement la question reformulée."),
-    MessagesPlaceholder("history"),
-    ("human", "{question}"),
-])
-
-
 def build_answer_chain(llm: BaseChatModel):
     return ANSWER_PROMPT | llm | StrOutputParser()
-
-
-def build_condense_chain(llm: BaseChatModel):
-    return CONDENSE_PROMPT | llm | StrOutputParser()
 
 
 # ---------- résumé map-reduce ----------
@@ -125,3 +112,34 @@ def summarize_texts(llm: BaseChatModel, texts: list[str], max_chars: int = SUMMA
         summaries = map_chain.batch([{"content": g} for g in regrouped], config={"max_concurrency": 4})
 
     return reduce_chain.invoke({"content": "\n\n".join(summaries)})
+
+
+# ---------- amélioration de la recherche ----------
+
+REWRITE_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", "Tu prépares une recherche dans une documentation technique rédigée en anglais. "
+               "À partir de la conversation, réécris la dernière question de l'utilisateur en une "
+               "requête de recherche autonome, en anglais, en ajoutant les noms de fonctions, méthodes "
+               "ou paramètres probablement concernés. Ne réponds pas à la question : renvoie uniquement "
+               "la requête, sur une seule ligne."),
+    MessagesPlaceholder("history"),
+    ("human", "{question}"),
+])
+
+HYDE_PROMPT = ChatPromptTemplate.from_template(
+    "Écris, en anglais, un court extrait de documentation technique (3 à 6 phrases et un exemple "
+    "de code si pertinent) qui répondrait à la question ci-dessous, dans le style d'une documentation "
+    "officielle. Renvoie uniquement l'extrait.\n\nQuestion : {question}"
+)
+
+
+def build_rewrite_chain(llm: BaseChatModel):
+    """Question (+ historique) -> requête de recherche autonome, en anglais, avec les noms d'API probables.
+
+    Mesuré sur 35 questions : hit rate@4 de 60 % à 97 % (voir evaluation/results.md)."""
+    return REWRITE_PROMPT | llm | StrOutputParser()
+
+
+def build_hyde_chain(llm: BaseChatModel):
+    """HyDE : génère un passage hypothétique, dont on cherchera les voisins réels."""
+    return HYDE_PROMPT | llm | StrOutputParser()

@@ -35,7 +35,8 @@ def test_ask_without_documents_does_not_call_llm(tmp_path):
 
 
 def test_ask_streams_answer_with_sources(tmp_path, doc_file):
-    service = _service(tmp_path, ["Utilise groupby [1]."])
+    # 1re réponse du faux LLM = requête réécrite, 2e = réponse finale
+    service = _service(tmp_path, ["groupby mean", "Utilise groupby [1]."])
     service.ingest([str(doc_file)])
     steps = list(service.ask_stream("Comment grouper ?"))
     assert len(steps) > 1                      # la réponse arrive par morceaux
@@ -44,9 +45,9 @@ def test_ask_streams_answer_with_sources(tmp_path, doc_file):
     assert documents and documents[0].metadata["source"] == "guide.md"
 
 
-def test_follow_up_question_is_reformulated_first(tmp_path, doc_file):
-    # 1re réponse du faux LLM = question reformulée, 2e = réponse finale
-    service = _service(tmp_path, ["Comment calculer la moyenne avec groupby ?", "Avec .mean() [1]."])
+def test_follow_up_question_is_rewritten_first(tmp_path, doc_file):
+    # 1re réponse du faux LLM = requête réécrite, 2e = réponse finale
+    service = _service(tmp_path, ["groupby mean", "Avec .mean() [1]."])
     service.ingest([str(doc_file)])
     history = [{"role": "user", "content": "Comment grouper ?"}, {"role": "assistant", "content": "Avec groupby."}]
     answer, _ = service.ask("et pour la moyenne ?", history=history)

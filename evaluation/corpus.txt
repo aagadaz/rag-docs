@@ -1,0 +1,7 @@
+# Documents indexés pour l'évaluation (chemins relatifs à la racine du projet)
+doc_panda/user_guide/groupby.html
+doc_panda/user_guide/merging.html
+doc_panda/user_guide/reshaping.html
+doc_panda/user_guide/missing_data.html
+doc_panda/user_guide/text.html
+doc_panda/user_guide/timeseries.html

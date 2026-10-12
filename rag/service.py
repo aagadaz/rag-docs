@@ -4,7 +4,7 @@ from pathlib import Path
 from langchain_core.documents import Document
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 
-from rag.chains import build_answer_chain, build_condense_chain, format_context, get_llm, summarize_texts
+from rag.chains import build_answer_chain, build_rewrite_chain, format_context, get_llm, summarize_texts
 from rag.config import settings
 from rag.loaders import load_source
 from rag.splitter import split_documents
@@ -51,7 +51,7 @@ class RAGService:
         self.llm = llm or get_llm()
         self.length_function = length_function
         self.answer_chain = build_answer_chain(self.llm)
-        self.condense_chain = build_condense_chain(self.llm)
+        self.rewrite_chain = build_rewrite_chain(self.llm)
 
     # ----- gestion des documents -----
 
@@ -89,13 +89,14 @@ class RAGService:
     def ask_stream(
         self, question: str, history: list[dict] | None = None, source: str | None = None
     ) -> Iterator[tuple[str, list[Document]]]:
-        messages = _to_messages(history)
-        standalone = self.condense_chain.invoke({"history": messages, "question": question}) if messages else question
-
-        documents = self.retrieve(standalone, source)
-        if not documents:
+        if not self.sources():
             yield "Aucun document indexé pour l'instant : ajoute d'abord une documentation.", []
             return
+
+        messages = _to_messages(history)
+        # La question (et l'historique) devient une requête autonome en anglais, avec les noms d'API probables.
+        search_query = self.rewrite_chain.invoke({"history": messages, "question": question})
+        documents = self.retrieve(search_query, source)
 
         answer = ""
         for piece in self.answer_chain.stream({
