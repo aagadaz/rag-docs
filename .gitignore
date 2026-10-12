@@ -1,0 +1,13 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+chroma_db/
+indexes/
+data/
+dataraw/
+models/
+doc_panda/
+Pandas_Cheat_Sheet.pdf
+docs/Guide_*.pdf
